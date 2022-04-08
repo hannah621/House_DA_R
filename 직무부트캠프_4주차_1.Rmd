@@ -1,0 +1,40 @@
+---
+title: "직무부트캠프_4주차"
+author: "Hyeyeon Kim"
+date: "12/12/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("sqldf")
+library("sqldf")
+```
+
+```{r}
+datanew <- read.csv("4th_data.csv")
+
+summary(datanew$RepairType)
+
+summary(datanew$taskID)
+
+datanew %>% group_by(datanew$taskID) %>% summarize(count=n())
+
+datanew %>% group_by(RepairType) %>% summarise(count=n())
+datanew %>% group_by(RepairType) %>% summarize(mean=mean(EstimatedRepairTime,na.rm = TRUE), sum=sum(EstimatedRepairTime, na.rm=TRUE))
+
+system.time(sqldf("SELECT * FROM datanew "))
+system.time(sqldf("SELECT EstimatedRepairTime FROM datanew WHERE RepairType = 'P'"))
+system.time(sqldf("SELECT EstimatedRepairTime FROM datanew WHERE RepairType = 'E'"))
+
+sqldf("SELECT EstimatedRepairTime FROM datanew GROUP BY RepairType")
+
+datanew %>% group_by(RepairType) %>% summarise(mean(EstimatedRepairTime)) %>%
+  ggplot(aes(x=RepairType)) +
+  geom_bar()
+```
+
+```{r}
+datanew %>% group_by(RepairType)
+```
+

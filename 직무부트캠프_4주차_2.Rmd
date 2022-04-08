@@ -1,0 +1,38 @@
+---
+title: "Untitled"
+author: "Hyeyeon Kim"
+date: "12/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("dplyr")
+library(dplyr)
+install.packages("sqldf")
+library("sqldf")
+```
+
+```{r}
+datanew <- read.csv("4th_data.csv")
+
+datanew %>% group_by(RepairType) %>% summarise(count=n())
+```
+
+```{r}
+sqldf("select RepairType
+      from datanew
+      where taskID = 'ImmediateRepair'")
+
+sqldf("select taskID, RepairType
+      from datanew
+      group by RepairType")
+
+sqldf("select caseID, RepairType, EstimatedRepairTime
+      from datanew
+      group by caseID, RepairType")
+
+sqldf("select datediff(timestamp)
+      from datanew")
+```
+

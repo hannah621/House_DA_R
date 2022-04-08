@@ -1,0 +1,187 @@
+---
+title: "직무부트캠프_1주차"
+author: "Hyeyeon Kim"
+date: "11/16/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(sp)
+library(tmap)
+library(tmaptools)
+library(rgdal)
+library(dplyr)
+library(maptools)
+library(gridExtra)
+library(broom)
+library(gpclib)
+library(rgeos)
+```
+
+```{r}
+train <- read.csv("train_mdf.csv")
+head(train)
+
+class(train$MSSubClass)
+class(train$MSZoning)
+```
+
+```{r}
+train$YearBuilt
+
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+getmode(train$YearBuilt)
+
+summary(train)
+length(train)
+```
+
+```{r}
+class(train$MSSubClass)
+class(train$MSZoning)
+class(train$LotFrontage)
+class(train$LotArea)
+class(train$Street)
+class(train$Alley)
+
+```
+
+
+target object: Year Built
+```{r}
+mean(train$YearBuilt)
+median(train$YearBuilt)
+getmode(train$YearBuilt)
+
+max(train$YearBuilt)
+min(train$YearBuilt)
+range(train$YearBuilt)
+IQR(train$YearBuilt) #Q3-Q1
+
+summary(train$YearBuilt)
+
+dnorm(train$YearBuilt,mean(train$YearBuilt), sd(train$YearBuilt))
+shapiro.test(train$YearBuilt)
+
+yearbuilt1 <- ggplot() + 
+  stat_function(fun=dnorm, args = list(mean=mean(train$YearBuilt), sd=sd(train$YearBuilt))) +
+  ylab("") +
+  scale_y_continuous(breaks = NULL)
+                                                             
+dnorm(train$YearBuilt,mean(train$YearBuilt), sd(train$YearBuilt))
+
+ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 0, sd = 1)) + ylab("") +
+  scale_y_continuous(breaks = NULL)
+
+```
+
+target object: Style of dwelling
+```{r}
+mean(train$MSSubClass)
+median(train$MSSubClass)
+getmode(train$MSSubClass)
+
+mean(train$MSZoning)
+```
+
+target object: SalePrice
+```{r}
+train$SalePrice
+
+ggplot(train, aes(train$SalePrice)) +
+  geom_histogram() +
+  labs(title = "Sale Price") +
+  xlab("Sale Price")
+
+ggplot(train, aes(log(train$SalePrice))) +
+  geom_histogram() +
+  labs(title = "Sale Price") +
+  xlab("Sale Price in log")
+
+summary(train$SalePrice)
+getmode(train$SalePrice)
+```
+
+target object: Lot
+```{r}
+summary(train$LotFrontage)
+summary(train$LotArea)
+getmode(train$LotFrontage)
+getmode(train$LotArea)
+
+train %>% group_by(train$LotShape) %>% summarize(count=n())
+train %>% group_by(train$LotConfig) %>% summarize(count=n())
+```
+
+type and style of dwelling 
+```{r}
+train %>% group_by(train$BldgType) %>% summarize(count=n())
+train %>% group_by(train$HouseStyle) %>% summarize(count=n())
+```
+
+Quality and Condition
+```{r}
+summary(train$OverallCond)
+summary(train$OverallQual)
+
+ggplot(train, aes(train$OverallCond)) +
+  geom_histogram() +
+  xlab("Overall Condition")
+ggplot(train, aes(train$OverallQual)) +
+  geom_histogram() +
+  xlab("Overall Quality")
+```
+
+Year Built
+```{r}
+summary(train$YearBuilt)
+summary(train$YearRemodAdd)
+getmode(train$YearRemodAdd)
+```
+
+Basement
+```{r}
+summary(train$BsmtCond)
+train %>% group_by(train$BsmtCond) %>% summarize(count = n())
+train %>% group_by(train$BsmtCond) %>% ggplot(train, aes(train$BsmtCond)) + geom_histogram()
+
+
+summary(train$BsmtExposure)
+summary(train$BsmtFinSF1)
+summary(train$BsmtFinSF2)
+```
+
+Garage
+```{r}
+train %>% group_by(train$GarageType) %>% summarize(count=n())
+
+ggplot(data=train, mapping = aes(GarageType)) +
+  geom_histogram(stat = "count") +
+  labs(title = "Garage Type")
+```
+
+Sale
+```{r}
+train %>% group_by(train$SaleType) %>% summarize(count=n())
+train %>% group_by(train$SaleCondition) %>% summarize(count=n())
+```
+
+Bedroom (Above ground, not including basement) / Living Area
+```{r}
+summary(train$BedroomAbvGr)
+getmode(train$BedroomAbvGr)
+
+summary(train$GrLivArea)
+getmode(train$GrLivArea)
+
+summary(train$TotRmsAbvGrd)
+getmode(train$TotRmsAbvGrd)
+```
+

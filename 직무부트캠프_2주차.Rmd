@@ -1,0 +1,180 @@
+---
+title: "직무부트캠프_2주차"
+author: "Hyeyeon Kim"
+date: "11/27/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(sp)
+library(tmap)
+library(tmaptools)
+library(rgdal)
+library(dplyr)
+library(maptools)
+library(gridExtra)
+library(broom)
+library(gpclib)
+library(rgeos)
+```
+
+#1 지어진 년도 / 리모델링 년도
+```{r}
+train <- read.csv("train_mdf.csv")
+
+#numerical
+#1
+train$YearBuilt
+
+ggplot(train) +
+  geom_bar(aes(x=YearBuilt)) #too much information
+
+summary(train$YearBuilt)
+
+summary(lm(data=train, SalePrice ~ YearBuilt))
+# y_SalePrice = -2.530 * 10^06 + 1.375*10^03
+
+
+
+#2
+train$YearRemodAdd
+
+summary(train$YearRemodAdd)
+sd(train$YearRemodAdd)
+
+ggplot(train) +
+  geom_bar(aes(x=YearRemodAdd), width=20) #1년 단위로 하면 too much info - what to do?
+
+ggplot(train) +
+  geom_bar(aes(x=YearBuilt, group = YearRemodAdd)) #YearBuilt 에서 YearRemodAdd 그룹으로 묶음 - 이상해..
+
+ggplot(train) +
+  geom_boxplot(aes(x=YearBuilt, group = YearRemodAdd))
+
+ggplot(train) +
+  geom_point(aes(x = YearBuilt, y = YearRemodAdd)) +
+  geom_abline(YearBuilt = "YearRemodAdd", col="red") +
+  labs(title = "YearBuilt by Remodeling date")
+   
+
+#categorical
+#1
+train$Functional
+train %>% group_by(Functional) %>% summarize(count=n())
+
+ggplot(train) +
+  geom_boxplot(aes(x=Functional, group = SalePrice)) +
+  ylab("Sale Price") +
+  xlab("Functional") +
+  labs(title = "Saleprice by Functional")
+
+ggplot(train) +
+  geom_boxplot(aes(x=SalePrice, group = Functional)) +
+  # ylab("Sale Price") +
+  # xlab("Functional") +
+  labs(title = "Saleprice by Functional")
+
+ggplot(train) + 
+  geom_point(aes(x=SalePrice, y=Functional)) +
+  labs(title = "SalePrice per Functional")
+```
+
+#2 집의 전체크기 - 방의 갯수(화장실 불포함)
+```{r}
+# Categorical
+#1
+train$HouseStyle
+
+train %>% group_by(HouseStyle) %>% summarize(count=n())
+
+ggplot(train) +
+  geom_bar(aes(x=HouseStyle)) +
+  labs(title = "Style of Dwelling")
+
+# Numerical
+#1
+train$LotArea
+summary(train$LotArea)
+
+summary(lm(data=train, SalePrice ~ LotArea))
+
+ggplot(train) +
+  geom_boxplot(aes(x=LotArea)) # 왜 안되지?
+
+#2
+train$LotFrontage
+summary(train$LotFrontage)
+ggplot(train) +
+  geom_boxplot(aes(x=LotFrontage)) +
+  labs(title = "Linear Feet of Property Street") #so many outliers
+
+#3
+train$X1stFlrSF
+summary(train$X1stFlrSF)
+
+train$GrLivArea
+summary(train$GrLivArea)
+
+ggplot(train) +
+  geom_point(aes(x=X1stFlrSF, y=GrLivArea)) +
+  xlab("1st Floor in SF") +
+  ylab("Above Ground Living room Area") +
+  labs(title = "1st Flr vs Ground Lv Room")
+#4
+train$X2ndFlrSF
+summary(train$X2ndFlrSF)
+sd(train$X2ndFlrSF)
+
+ggplot(train) +
+  geom_point(aes(x=X2ndFlrSF, y=X1stFlrSF)) +
+  labs(title = "2nd Floor vs 1st Floor in SF")
+```
+
+#3 주차장의 유무와 크기
+```{r}
+#categorical
+#1
+train$GarageType
+train %>% group_by(GarageType) %>% summarize(count=n())
+
+#2
+train$GarageQual
+train %>% group_by(GarageQual) %>% summarize(count=n)
+
+ggplot(train) +
+  geom_bar(aes(x=GarageQual)) +
+  labs(title = "Garage Quality") 
+
+ggplot(train) +
+  geom_point(aes(x=GarageQual,y = SalePrice)) +
+  labs(title = "SalePrice per Garage Quality")
+
+#numerical
+#1
+train$GarageCars
+summary(train$GarageCars)
+
+ggplot(train) +
+  geom_bar(aes(x=GarageCars)) +
+  labs(title = "Car Capacity")
+
+#2
+train$GarageArea
+summary(train$GarageArea)
+
+ggplot(train)+
+  geom_point(aes(x=GarageArea, y=SalePrice)) +
+  labs(title = "SalePrice per GarageArea")
+
+summary(lm(data=train, SalePrice ~ GarageArea))
+
+###
+ggplot(train) +
+  geom_boxplot(aes(x=GarageArea, group=GarageType)) +
+  xlab("Garage Area") +
+  ylab("Garage Type") +
+  labs(title="Garage Area vs. Garage Type")
+```
+

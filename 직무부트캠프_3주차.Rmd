@@ -1,0 +1,152 @@
+---
+title: "직무부트캠프_3주차"
+author: "Hyeyeon Kim"
+date: "12/4/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(sp)
+library(tmap)
+library(tmaptools)
+library(rgdal)
+library(dplyr)
+library(maptools)
+library(gridExtra)
+library(broom)
+library(gpclib)
+library(rgeos)
+library(Metrics)
+install.packages("Metrics")
+```
+
+```{r}
+train <- read.csv("train_mdf.csv")
+```
+
+
+```{r}
+summary(lm(data=train, SalePrice ~ YearBuilt))
+
+summary(lm(data=train, SalePrice ~ YearRemodAdd))
+
+summary(lm(data=train, SalePrice ~ Functional))
+
+summary(lm(data=train, SalePrice ~ HouseStyle))
+
+summary(lm(data=train, SalePrice ~ LotArea))
+
+summary(lm(data=train, SalePrice ~ LotFrontage))
+
+summary(lm(data=train, SalePrice ~ X1stFlrSF))
+
+summary(lm(data=train, SalePrice ~ X2ndFlrSF))
+
+summary(lm(data=train, SalePrice ~ GarageType))
+
+summary(lm(data=train, SalePrice ~ GarageQual))
+
+summary(lm(data=train, SalePrice ~ GarageCars))
+
+summary(lm(data=train, SalePrice ~ GarageArea))
+
+summary(lm(data=train, SalePrice ~ OverallQual))
+
+summary(lm(data=train, SalePrice ~ GrLivArea))
+
+summary(lm(data=train, SalePrice ~ FullBath))
+
+summary(lm(data=train, SalePrice ~ TotalBsmtSF))
+
+summary(lm(data=train, SalePrice ~ TotRmsAbvGrd))
+```
+
+
+```{r}
+# Define models
+#R-Squared
+
+rsq <- function(train_x, train_y) summary(lm(train_y~train_x))$r.squared
+rsq(train$GrLivArea, train$SalePrice)
+
+#RMSE: Root Mean Squared Error
+model <- lm(train$SalePrice ~ train$OverallQual)
+predictions <- model %>% predict(test.data)
+RMSE(predictions, test.data$sales)
+
+for (x in train) {
+  x=train$OverallQual
+  y=train$SalePrice
+  lm1 = lm(y ~ x)
+  R2 = rsq(x, y)
+  print(lm1, R2)
+} 
+```
+
+```{r}
+#ANOVA 모델링 - 분산분석
+
+aov1 <- aov(train$SalePrice ~ train$OverallQual)
+summary(aov1)
+
+aov2 <- aov(train$SalePrice ~ train$FullBath)
+summary(aov2)
+
+aov3 <- aov(train$SalePrice ~ train$GarageCars)
+summary(aov3)
+
+aov4 <- aov(train$SalePrice ~ train$TotRmsAbvGrd)
+summary(aov4)
+```
+
+```{r}
+#Making training dataset and test dataset
+str(train)
+head(train)
+
+set.seed(123)
+h <- runif(nrow(train))
+trainr <- train[order(h), ]
+str(trainr)
+
+traintraindata <- trainr[1:1000,]
+testtraindata <- trainr[1001:1460,]
+```
+
+```{r}
+#Training set - linear regression modeling
+#R-Squared
+
+rsq <- function(train_x, train_y) summary(lm(train_y~train_x))$r.squared
+rsq(traintraindata$GrLivArea, traintraindata$SalePrice)
+
+#RMSE: Root Mean Squared Error
+model <- lm(traintraindata$SalePrice ~ traintraindata$GrLivArea)
+predictions <- model %>% predict(testtraindata$GrLivArea)
+rmse(predictions, testtraindata$GrLivArea)
+
+#
+summary(model)
+trainmodel <- lm(train$SalePrice ~ train$GrLivArea)
+summary(trainmodel)
+(1-( 0.5021 - 0.4817))*100
+
+summary(lm(testtraindata$SalePrice ~ testtraindata$GrLivArea))
+```
+
+```{r}
+# ANOVA modeling
+
+summary(aov(traintraindata$SalePrice ~ traintraindata$OverallQual))
+summary(aov(traintraindata$SalePrice ~ traintraindata$FullBath))
+summary(aov(traintraindata$SalePrice ~ traintraindata$GarageCars))
+summary(aov(traintraindata$SalePrice ~ traintraindata$TotRmsAbvGrd))
+
+summary(aov(testtraindata$SalePrice ~ testtraindata$OverallQual))
+summary(aov(testtraindata$SalePrice ~ testtraindata$FullBath))
+summary(aov(testtraindata$SalePrice ~ testtraindata$GarageCars))
+summary(aov(testtraindata$SalePrice ~ testtraindata$TotRmsAbvGrd))
+```
+
